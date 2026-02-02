@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://medpay-sandbox.dev/schemas/regionpack.json",
+  "title": "RegionPack",
+  "description": "医保沙盘地区规则插件包配置",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "region_level",
+    "payment_primary",
+    "policy_version",
+    "settlement_cycle",
+    "drg",
+    "dip",
+    "special_case",
+    "param_source_map",
+    "evidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "唯一标识符，如 beijing_drg_demo"
+    },
+    "name": {
+      "type": "string",
+      "description": "显示名称，如 北京市 DRG 2.0 示例"
+    },
+    "region_level": {
+      "type": "string",
+      "enum": ["统筹区", "城市", "省级"],
+      "description": "地区级别"
+    },
+    "payment_primary": {
+      "type": "string",
+      "enum": ["DRG", "DIP", "mixed"],
+      "description": "主支付模式"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "政策版本号，如 CHS-DRG 2.0"
+    },
+    "settlement_cycle": {
+      "type": "string",
+      "enum": ["daily_demo", "monthly", "quarterly"],
+      "description": "结算周期"
+    },
+    "budget_model": {
+      "type": "object",
+      "properties": {
+        "annual_budget": { "type": "number" },
+        "description": { "type": "string" }
+      },
+      "description": "预算模型配置"
+    },
+    "drg": {
+      "type": "object",
+      "required": ["base_rate", "adjustment_multiplier", "outlier_multiplier"],
+      "properties": {
+        "base_rate": {
+          "type": "number",
+          "description": "DRG 基础费率"
+        },
+        "adjustment_multiplier": {
+          "type": "number",
+          "description": "调节系数"
+        },
+        "outlier_multiplier": {
+          "type": "number",
+          "description": "极高费用病例阈值倍数"
+        }
+      }
+    },
+    "dip": {
+      "type": "object",
+      "required": ["point_value_model"],
+      "properties": {
+        "point_value_model": {
+          "type": "object",
+          "required": ["multiplier", "external_points_base"],
+          "properties": {
+            "multiplier": {
+              "type": "number",
+              "description": "本院点数占比乘数"
+            },
+            "external_points_base": {
+              "type": "number",
+              "description": "区域外点数基数"
+            }
+          }
+        }
+      }
+    },
+    "special_case": {
+      "type": "object",
+      "required": ["quota_rate_drg", "quota_rate_dip", "uplift_rate", "ffspay_rate"],
+      "properties": {
+        "quota_rate_drg": {
+          "type": "number",
+          "description": "DRG 特例单议额度比例 (<=0.05)"
+        },
+        "quota_rate_dip": {
+          "type": "number",
+          "description": "DIP 特例单议额度比例 (<=0.005)"
+        },
+        "uplift_rate": {
+          "type": "number",
+          "description": "特例单议上浮比例"
+        },
+        "ffspay_rate": {
+          "type": "number",
+          "description": "按项目付费比例"
+        }
+      }
+    },
+    "param_source_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["official", "local_doc", "assumption"]
+      },
+      "description": "参数来源映射"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["param_key", "source_type", "excerpt"],
+        "properties": {
+          "param_key": {
+            "type": "string",
+            "description": "对应参数键名"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": ["official", "local_doc", "assumption"]
+          },
+          "source_title": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": ["string", "null"]
+          },
+          "publish_date": {
+            "type": ["string", "null"]
+          },
+          "excerpt": {
+            "type": "string",
+            "description": "摘录（<=25词）"
+          },
+          "notes": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    }
+  }
+}
