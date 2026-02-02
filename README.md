@@ -1,6 +1,9 @@
 # MedPay Sandbox
 
+Version: 1.0
+
 医保支付方式（DRG/DIP）沙盘推演系统，用于学术研究与教学演示。
+A DRG/DIP payment simulation sandbox for research and teaching.
 
 ## 项目目标（可验收）
 
@@ -17,15 +20,14 @@
 - `docs`：产品/方法论/证据链/安全文档
 - `scripts`：验收与验证脚本
 
-## 更新概览（当前实现）
+## 主要亮点 / Highlights
 
-- DRG/DIP 双引擎结算：支付、利润、点值与差异对照可视化
-- 特例单议：额度限制（DRG 5% / DIP 5‰）、uplift/ffspay 策略、管理效应追踪
-- 解释器：结构/价格/管理三分解，结算事件自动生成解释卡
-- 证据链：/method 页面展示方法论、证据卡可展开/折叠，来源统计与参数列表
-- 情景模式：/watch 支持自由模式与情景模式（ScenarioPack 引导）
-- 复盘卡：情景完成后生成 Markdown 复盘卡并下载
-- 导出：`/scenario/{id}/export` 下载 `scenario.json`、`events.jsonl`、`results.csv`
+- DRG/DIP 双引擎对照：支付、利润、点值同屏对比，定位差异来源。
+- 特例单议额度约束：DRG 5% / DIP 5‰ 额度与 uplift/ffspay 策略联动。
+- 解释器三分解：结构/价格/管理效应自动生成解释卡。
+- 情景引导与自由演练：/watch 同时支持 Guided Mode 与自由模式。
+- 复盘卡一键导出：生成 Markdown 复盘卡并下载。
+- 数据导出闭环：`/scenario/{id}/export` 提供 `scenario.json`、`events.jsonl`、`results.csv`。
 
 ## 一键运行（Makefile）
 
@@ -92,3 +94,7 @@ POST /scenario/{id}/params
 - `data/scenarios/s1_point_value_down.yml`
 - `data/scenarios/s2_case_mix_heavy.yml`
 - `data/scenarios/s3_special_quota.yml`
+
+## License
+
+MIT
