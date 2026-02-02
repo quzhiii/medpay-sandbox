@@ -1,0 +1,289 @@
+[
+  {
+    "key": "drg.pay_total",
+    "label_zh": "DRG 支付总额",
+    "unit": "CNY",
+    "description": "DRG 累计支付",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.pay_drg_total or last_settle.delta.pay_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.cost_total",
+    "label_zh": "DRG 成本",
+    "unit": "CNY",
+    "description": "DRG 成本（使用总成本）",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.total_cost or last_settle.payload.cost",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.margin_total",
+    "label_zh": "DRG 利润总额",
+    "unit": "CNY",
+    "description": "DRG 累计利润",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.margin_drg_total or last_settle.delta.margin_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.margin_rate",
+    "label_zh": "DRG 利润率",
+    "unit": "%",
+    "description": "DRG 利润率",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "margin_drg_total / total_cost",
+    "null_reason": "成本为 0 或无结算事件"
+  },
+  {
+    "key": "drg.quota.used",
+    "label_zh": "DRG 特例额度已用",
+    "unit": "cases",
+    "description": "DRG 特例单议额度已用",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.quota_used_drg or last_settle.payload.quota_used_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.quota.max",
+    "label_zh": "DRG 特例额度上限",
+    "unit": "cases",
+    "description": "DRG 特例单议额度上限",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.quota_max_drg or last_settle.payload.quota_max_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.quota.ratio",
+    "label_zh": "DRG 特例额度占比",
+    "unit": "ratio",
+    "description": "DRG 特例单议额度占比",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "quota_used_drg / quota_max_drg",
+    "null_reason": "额度上限为 0 或无结算事件"
+  },
+  {
+    "key": "drg.management_effect",
+    "label_zh": "DRG 管理效应",
+    "unit": "CNY",
+    "description": "DRG 管理效应累计",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.management_effect_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "drg.rejected_special_cases",
+    "label_zh": "DRG 被拒特例数",
+    "unit": "cases",
+    "description": "特例单议被拒数量",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.rejected_special_cases",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.pay_total",
+    "label_zh": "DIP 支付总额",
+    "unit": "CNY",
+    "description": "DIP 累计支付",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.pay_dip_total or last_settle.delta.pay_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.cost_total",
+    "label_zh": "DIP 成本",
+    "unit": "CNY",
+    "description": "DIP 成本（使用总成本）",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.total_cost or last_settle.payload.cost",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.margin_total",
+    "label_zh": "DIP 利润总额",
+    "unit": "CNY",
+    "description": "DIP 累计利润",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.margin_dip_total or last_settle.delta.margin_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.margin_rate",
+    "label_zh": "DIP 利润率",
+    "unit": "%",
+    "description": "DIP 利润率",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "margin_dip_total / total_cost",
+    "null_reason": "成本为 0 或无结算事件"
+  },
+  {
+    "key": "dip.point_value",
+    "label_zh": "DIP 点值",
+    "unit": "value",
+    "description": "当前点值",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.current_point_value or last_settle.payload.point_value",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.external_points",
+    "label_zh": "DIP 区域外点数",
+    "unit": "points",
+    "description": "区域外点数基数",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.external_points",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.quota.used",
+    "label_zh": "DIP 特例额度已用",
+    "unit": "cases",
+    "description": "DIP 特例单议额度已用",
+    "window_supported": ["instant", "last_settle", "day"],
+    "windows_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.quota_used_dip or last_settle.payload.quota_used_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.quota.max",
+    "label_zh": "DIP 特例额度上限",
+    "unit": "cases",
+    "description": "DIP 特例单议额度上限",
+    "window_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.quota_max_dip or last_settle.payload.quota_max_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "dip.quota.ratio",
+    "label_zh": "DIP 特例额度占比",
+    "unit": "ratio",
+    "description": "DIP 特例单议额度占比",
+    "window_supported": ["instant", "last_settle", "day"],
+    "compute_source": "quota_used_dip / quota_max_dip",
+    "null_reason": "额度上限为 0 或无结算事件"
+  },
+  {
+    "key": "dip.management_effect",
+    "label_zh": "DIP 管理效应",
+    "unit": "CNY",
+    "description": "DIP 管理效应累计",
+    "window_supported": ["instant", "last_settle", "day"],
+    "compute_source": "state.management_effect_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.drg.delta_pay",
+    "label_zh": "DRG 支付变化",
+    "unit": "CNY",
+    "description": "最近结算 DRG 支付变化",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.delta_total_pay_drg",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.drg.struct",
+    "label_zh": "DRG 结构效应",
+    "unit": "CNY",
+    "description": "解释器 DRG 结构效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_drg.structural",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.drg.price",
+    "label_zh": "DRG 价格效应",
+    "unit": "CNY",
+    "description": "解释器 DRG 价格效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_drg.price",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.drg.management",
+    "label_zh": "DRG 管理效应",
+    "unit": "CNY",
+    "description": "解释器 DRG 管理效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_drg.management",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.drg.price_share",
+    "label_zh": "DRG 价格占比",
+    "unit": "ratio",
+    "description": "DRG 价格效应占比",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "explainer.drg.price / explainer.drg.delta_pay",
+    "null_reason": "分母为 0 或无结算事件"
+  },
+  {
+    "key": "explainer.dip.delta_pay",
+    "label_zh": "DIP 支付变化",
+    "unit": "CNY",
+    "description": "最近结算 DIP 支付变化",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.delta_total_pay_dip",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.dip.struct",
+    "label_zh": "DIP 结构效应",
+    "unit": "CNY",
+    "description": "解释器 DIP 结构效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_dip.structural",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.dip.price",
+    "label_zh": "DIP 价格效应",
+    "unit": "CNY",
+    "description": "解释器 DIP 价格效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_dip.price",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.dip.management",
+    "label_zh": "DIP 管理效应",
+    "unit": "CNY",
+    "description": "解释器 DIP 管理效应",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "last_settle.explanation.decomp_dip.management",
+    "null_reason": "无结算事件"
+  },
+  {
+    "key": "explainer.dip.price_share",
+    "label_zh": "DIP 价格占比",
+    "unit": "ratio",
+    "description": "DIP 价格效应占比",
+    "window_supported": ["last_settle"],
+    "windows_supported": ["last_settle"],
+    "compute_source": "explainer.dip.price / explainer.dip.delta_pay",
+    "null_reason": "分母为 0 或无结算事件"
+  }
+]
