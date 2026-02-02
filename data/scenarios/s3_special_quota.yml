@@ -1,0 +1,90 @@
+id: s3_special_quota
+title: S3 特例单议额度约束
+timebox_minutes: 30
+learning_objective: 通过激进策略快速消耗特例单议额度（演示假设/待补齐证据），观察额度耗尽对支付与解释器管理效应的影响。
+region_id: beijing_drg_demo
+seed: 99
+initial_params:
+  special_strategy: uplift
+  special_aggressiveness: 0.9
+  special_case_candidate_rate: 0.9
+policy_version_tag: CHS-DRG 2.0 / DIP 2.0
+steps:
+  - step_id: s3-1
+    instruction: 保持激进策略推进多个批次，观察特例单议额度消耗。
+    action:
+      type: set_param
+      payload:
+        special_aggressiveness: 1.0
+        special_case_candidate_rate: 1.0
+        n_batches: 6
+        loop_until: true
+        max_batches: 24
+    expected_observation:
+      - DRG 额度占比接近上限（指标名：drg.quota.ratio）
+      - 管理效应提升（指标名：drg.management_effect）
+    expected_rules:
+      - metric: drg.quota.ratio
+        operator: ">="
+        threshold: 0.9
+        window: last_settle
+      - metric: drg.management_effect
+        operator: ">"
+        threshold: 0
+        window: last_settle
+    required_triggers:
+      - metric: drg.management_effect
+        operator: ">"
+        threshold: 0
+        window: last_settle
+    pass_condition:
+      metric: drg.quota.ratio
+      operator: ">="
+      threshold: 0.9
+      window: last_settle
+      suggest: "若未达标，可继续快速推进 6 批或将 special_case_candidate_rate 提高到 1.0。"
+    explain_check:
+      question: 特例单议导致支付上浮在解释器中对应哪一项？
+      options:
+        - 结构效应
+        - 价格效应
+        - 管理效应
+      correct_option_index: 2
+      rationale: 特例单议属于管理行为，体现为管理效应提升。
+
+  - step_id: s3-2
+    instruction: 继续推进，观察额度耗尽后的支付变化。
+    action:
+      type: advance
+      payload:
+        n_batches: 6
+    expected_observation:
+      - 被拒申请数量上升（指标名：drg.rejected_special_cases）
+      - 管理效应增速放缓（指标名：drg.management_effect）
+    expected_rules:
+      - metric: drg.rejected_special_cases
+        operator: ">"
+        threshold: 0
+        window: last_settle
+    pass_condition:
+      metric: drg.rejected_special_cases
+      operator: ">"
+      threshold: 0
+      window: last_settle
+      suggest: "若仍为 0，可继续推进 6 批以触发额度耗尽后的拒付。"
+    explain_check:
+      question: 额度耗尽后，支付回归普通结算会导致哪项下降？
+      options:
+        - 结构效应
+        - 管理效应
+        - 价格效应
+      correct_option_index: 1
+      rationale: 特例单议受限后，管理效应贡献下降。
+
+completion:
+  export_required: true
+  artifacts:
+    - scenario.json
+    - events.jsonl
+    - results.csv
+  summary_template: "激进策略快速耗尽特例额度，管理效应先增后缓，额度约束导致支付回归普通结算。"

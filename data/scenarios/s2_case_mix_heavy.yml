@@ -1,0 +1,81 @@
+id: s2_case_mix_heavy
+title: S2 结构变重但不一定更赚钱
+timebox_minutes: 30
+learning_objective: 通过提高重症收治比例并抬升成本，观察“结构变重”与利润并不等价的机制。
+region_id: beijing_drg_demo
+seed: 7
+initial_params:
+  cases_per_day: 15
+policy_version_tag: CHS-DRG 2.0 / DIP 2.0
+steps:
+  - step_id: s2-1
+    instruction: 推进多个批次，观察结构与成本同步上升（演示假设/待补齐证据）。
+    action:
+      type: advance
+      payload:
+        batches: 3
+    expected_observation:
+      - DRG 结构效应为正（指标名：explainer.drg.struct）
+      - 总成本上升（指标名：drg.cost_total）
+    expected_rules:
+      - metric: explainer.drg.struct
+        operator: ">"
+        threshold: 0
+        window: last_settle
+      - metric: drg.cost_total
+        operator: ">"
+        threshold: 0
+        window: last_settle
+    pass_condition:
+      metric: explainer.drg.struct
+      operator: ">"
+      threshold: 0
+      window: last_settle
+    explain_check:
+      question: 结构变重后，利润不一定上升的主要原因是？
+      options:
+        - 成本增速可能高于支付增速
+        - 点值分母下降
+        - 特例单议额度无限制
+      correct_option_index: 0
+      rationale: 当成本同步上升时，支付增长可能不足以覆盖成本增量。
+
+  - step_id: s2-2
+    instruction: 推进 1 天并比较 DRG/DIP 利润率变化。
+    action:
+      type: advance
+      payload:
+        batches: 3
+    expected_observation:
+      - 结构效应上升但利润率下行（指标名：explainer.drg.struct / drg.margin_rate）
+      - 利润率可能下降（指标名：drg.margin_rate）
+    expected_rules:
+      - metric: drg.margin_rate
+        operator: "<"
+        threshold: 0.05
+        window: last_settle
+      - metric: explainer.drg.struct
+        operator: ">"
+        threshold: 0
+        window: last_settle
+    pass_condition:
+      metric: drg.margin_rate
+      operator: "<"
+      threshold: 0.05
+      window: last_settle
+    explain_check:
+      question: 解释器中哪一项可用来判断结构变重？
+      options:
+        - decomp_structural
+        - decomp_price
+        - decomp_management
+      correct_option_index: 0
+      rationale: 结构效应体现病例结构与权重变化的影响。
+
+completion:
+  export_required: true
+  artifacts:
+    - scenario.json
+    - events.jsonl
+    - results.csv
+  summary_template: "结构变重带来基础支付能力提升，但成本上升可能抵消收益，利润未必增加。"

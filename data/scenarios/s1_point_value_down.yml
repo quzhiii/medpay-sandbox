@@ -1,0 +1,81 @@
+id: s1_point_value_down
+title: S1 点值下行（DIP 分母上升）
+timebox_minutes: 30
+learning_objective: 通过扩大 DIP 分母（演示假设/待补齐证据），观察点值下行如何压缩支付与利润，并与 DRG 形成对照。
+region_id: beijing_drg_demo
+seed: 42
+initial_params:
+  budget: 1000000
+policy_version_tag: CHS-DRG 2.0 / DIP 2.0
+steps:
+  - step_id: s1-1
+    instruction: 将区域外点数基数提高（模拟区域分母上升）。
+    action:
+      type: set_param
+      payload:
+        external_points: 2000000
+    expected_observation:
+      - 区域外点数基数上升（指标名：dip.external_points）
+      - 下一次结算后 DIP 点值下行（指标名：dip.point_value）
+    expected_rules:
+      - metric: dip.external_points
+        operator: ">="
+        threshold: 2000000
+        window: last_settle
+      - metric: dip.point_value
+        operator: "<"
+        threshold: 0.9
+        window: last_settle
+    pass_condition:
+      metric: dip.point_value
+      operator: "<"
+      threshold: 0.9
+      window: last_settle
+    explain_check:
+      question: 点值下降时，DIP 支付下降主要由哪类效应驱动？
+      options:
+        - 结构效应
+        - 价格效应
+        - 管理效应
+      correct_option_index: 1
+      rationale: 点值下行属于价格因子变化，解释器应体现为价格效应占比上升。
+
+  - step_id: s1-2
+    instruction: 推进 1 天，观察 DRG 与 DIP 的支付差异。
+    action:
+      type: advance
+      payload:
+        batches: 3
+    expected_observation:
+      - DIP 价格效应占比提升（指标名：explainer.dip.price_share）
+      - DIP 点值下行导致利润承压（指标名：dip.margin_rate）
+    expected_rules:
+      - metric: explainer.dip.price_share
+        operator: ">"
+        threshold: 0.6
+        window: last_settle
+      - metric: dip.margin_rate
+        operator: "<"
+        threshold: 0.05
+        window: last_settle
+    pass_condition:
+      metric: explainer.dip.price_share
+      operator: ">"
+      threshold: 0.6
+      window: last_settle
+    explain_check:
+      question: 同一病例在 DIP 中支付下降的主因是什么？
+      options:
+        - 病例结构变轻
+        - 点值分母上升导致点值下降
+        - 特例单议额度提升
+      correct_option_index: 1
+      rationale: 分母上升导致点值下降，这是 DIP 价格效应。
+
+completion:
+  export_required: true
+  artifacts:
+    - scenario.json
+    - events.jsonl
+    - results.csv
+  summary_template: "DIP 分母上升后，点值下降导致支付与利润下降；解释器显示价格效应占比提升。"
