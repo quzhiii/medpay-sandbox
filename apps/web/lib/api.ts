@@ -213,6 +213,7 @@ export interface ScenarioStep {
   expected_observation: string[]
   expected_rules?: ScenarioPassCondition[]
   required_triggers?: ScenarioPassCondition[]
+  hints?: string[]
   pass_condition: ScenarioPassCondition
   explain_check: ScenarioExplainCheck
 }

@@ -53,6 +53,7 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
   const [debriefMarkdown, setDebriefMarkdown] = useState<string>('')
   const [debriefReady, setDebriefReady] = useState(false)
   const [checklistStatus, setChecklistStatus] = useState<Record<number, { passed: boolean; value?: number | null; reason?: string }>>({})
+  const [passDetail, setPassDetail] = useState<{ value: number | null; condition: ScenarioPassCondition } | null>(null)
   const [answerLog, setAnswerLog] = useState<Array<{ stepId: string; selected: number; correct: boolean; rationale: string }>>([])
 
   // Derived
@@ -119,6 +120,11 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
     return windows
   }
 
+  const formatConditionLabel = (condition: ScenarioPassCondition) => {
+    const window = condition.window || 'last_settle'
+    return `${condition.metric} ${condition.operator} ${condition.threshold} · ${window}`
+  }
+
   const getRequiredTriggerFailure = (
     step: ScenarioStep,
     metricsByWindow: Record<string, ScenarioMetricsResponse>
@@ -140,6 +146,37 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
       Array.from(windows).map(async (win) => [win, await api.getScenarioMetrics(scenarioId, win as any)] as const)
     )
     return Object.fromEntries(metricsByWindowEntries) as Record<string, ScenarioMetricsResponse>
+  }
+
+  const evaluateStep = async (step: ScenarioStep, scenarioId: string) => {
+    const metricsByWindow = await fetchMetricsByWindow(scenarioId, step)
+    const passMetrics = metricsByWindow[step.pass_condition.window || 'last_settle']
+    const evalResult = evaluatePassCondition(step.pass_condition, passMetrics)
+    const requiredFailure = getRequiredTriggerFailure(step, metricsByWindow)
+    const rules = step.expected_rules || []
+    const checklist = rules.reduce((acc, rule, idx) => {
+      const ruleMetrics = metricsByWindow[rule.window || 'last_settle']
+      const res = evaluatePassCondition(rule, ruleMetrics)
+      acc[idx] = { passed: res.passed, value: res.value, reason: res.reason }
+      return acc
+    }, {} as Record<number, { passed: boolean; value?: number | null; reason?: string }>)
+
+    setChecklistStatus(checklist)
+    setPassDetail({ value: evalResult.value, condition: step.pass_condition })
+
+    if (evalResult.passed && !requiredFailure) {
+      setStepStatus('success')
+      setFailReason(null)
+      setFailSuggest(null)
+    } else {
+      setStepStatus('failed')
+      const failureReason = requiredFailure ? requiredFailure.reason : evalResult.reason
+      const failureSuggest = requiredFailure
+        ? (requiredFailure.suggest || step.pass_condition.suggest || null)
+        : (step.pass_condition.suggest || null)
+      setFailReason(failureReason)
+      setFailSuggest(failureSuggest)
+    }
   }
 
   // Handlers
@@ -259,34 +296,7 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
       // Update parent
       onScenarioChange(newState, [...events, ...newEvents])
 
-      // Evaluate
-      const metricsByWindow = await fetchMetricsByWindow(workingState.scenario_id, currentStep)
-
-      const passMetrics = metricsByWindow[currentStep.pass_condition.window || 'last_settle']
-      const evalResult = evaluatePassCondition(currentStep.pass_condition, passMetrics)
-      const requiredFailure = getRequiredTriggerFailure(currentStep, metricsByWindow)
-      const rules = currentStep.expected_rules || []
-      const checklist = rules.reduce((acc, rule, idx) => {
-        const ruleMetrics = metricsByWindow[rule.window || 'last_settle']
-        const res = evaluatePassCondition(rule, ruleMetrics)
-        acc[idx] = { passed: res.passed, value: res.value, reason: res.reason }
-        return acc
-      }, {} as Record<number, { passed: boolean; value?: number | null; reason?: string }>)
-      setChecklistStatus(checklist)
-      
-      if (evalResult.passed && !requiredFailure) {
-        setStepStatus('success')
-        setFailReason(null)
-        setFailSuggest(null)
-      } else {
-        setStepStatus('failed')
-        const failureReason = requiredFailure ? requiredFailure.reason : evalResult.reason
-        const failureSuggest = requiredFailure
-          ? (requiredFailure.suggest || currentStep.pass_condition.suggest || null)
-          : (currentStep.pass_condition.suggest || null)
-        setFailReason(failureReason)
-        setFailSuggest(failureSuggest)
-      }
+      await evaluateStep(currentStep, workingState.scenario_id)
 
     } catch (e) {
       console.error(e)
@@ -423,21 +433,38 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
               
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">预期观察:</p>
-                <ul className="space-y-1">
-                  {currentStep?.expected_observation.map((obs, i) => (
-                    <li key={i} className="text-sm flex items-start gap-2 text-foreground/80">
-                      <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      <span className="flex-1">{obs}</span>
-                      {currentStep?.expected_rules?.[i] && (
-                        <span className={`ml-2 text-xs ${checklistStatus[i]?.passed ? 'text-green-600' : 'text-muted-foreground'}`}>
-                          {checklistStatus[i]?.passed ? '已达成' : '待达成'}
-                          {typeof checklistStatus[i]?.value === 'number' && (
-                            <span className="ml-2 font-mono">{checklistStatus[i]?.value?.toFixed(4)}</span>
+                <ul className="space-y-2">
+                  {currentStep?.expected_observation.map((obs, i) => {
+                    const rule = currentStep?.expected_rules?.[i]
+                    const status = checklistStatus[i]
+                    return (
+                      <li key={i} className="text-sm text-foreground/80">
+                        <div className="flex items-start gap-2">
+                          {status?.passed ? (
+                            <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                           )}
-                        </span>
-                      )}
-                    </li>
-                  ))}
+                          <div className="flex-1">
+                            <div className="text-sm">{obs}</div>
+                            {rule && (
+                              <div className="text-xs text-muted-foreground font-mono mt-1">
+                                {formatConditionLabel(rule)}
+                              </div>
+                            )}
+                          </div>
+                          {rule && (
+                            <div className={`text-xs ${status?.passed ? 'text-green-600' : 'text-muted-foreground'}`}>
+                              <div>{status?.passed ? '已达成' : '待达成'}</div>
+                              {typeof status?.value === 'number' && (
+                                <div className="font-mono">{status.value.toFixed(4)}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             </div>
@@ -449,7 +476,7 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
                   <Button 
                     size="lg" 
                     onClick={handleExecuteStep} 
-                    disabled={executing || !scenarioState}
+                    disabled={executing}
                     className="min-w-[140px]"
                   >
                     {executing ? '执行中...' : '执行本步'}
@@ -469,11 +496,29 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
                    </div>
                 )}
               </div>
-                {stepStatus === 'failed' && currentStep && (
-                  <div className="text-xs text-muted-foreground">
-                  建议：{failSuggest || '可尝试“快速推进 x6 批”或根据步骤说明调整参数。'}
+              {stepStatus === 'failed' && currentStep && (
+                <div className="text-xs text-muted-foreground space-y-1">
+                  {passDetail && (
+                    <div>
+                      当前值：{typeof passDetail.value === 'number' ? passDetail.value.toFixed(4) : '不可用'}
+                      {' '}| 阈值：{passDetail.condition.threshold}
+                      {' '}({passDetail.condition.metric} {passDetail.condition.operator} {passDetail.condition.window || 'last_settle'})
+                    </div>
+                  )}
+                  <div>
+                    建议：
+                    {currentStep.hints?.length ? (
+                      <ul className="ml-1 list-disc list-inside">
+                        {currentStep.hints.map((hint, index) => (
+                          <li key={`${currentStep.step_id}-hint-${index}`}>{hint}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="ml-1">{failSuggest || '可尝试“快速推进 x6 批”或根据步骤说明调整参数。'}</span>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -490,6 +535,9 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
                       newEvents.push(...res.new_events)
                     }
                     onScenarioChange(newState, [...events, ...newEvents])
+                    if (currentStep) {
+                      await evaluateStep(currentStep, scenarioState.scenario_id)
+                    }
                     setExecuting(false)
                   }}
                   disabled={!scenarioState || executing}
