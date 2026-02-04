@@ -84,14 +84,22 @@ export function GuidedMode({ scenarioState, events, onScenarioChange }: GuidedMo
 
   const evaluatePassCondition = (
     condition: ScenarioPassCondition,
-    metrics: ScenarioMetricsResponse
+    metrics?: ScenarioMetricsResponse
   ): { passed: boolean; value: number | null; reason: string } => {
+    if (!metrics || !metrics.metrics) {
+      return {
+        passed: false,
+        value: null,
+        reason: `${condition.metric}: 指标不可用`,
+      }
+    }
+
     const value = metrics.metrics[condition.metric]
     if (value === null || value === undefined) {
       return {
         passed: false,
         value: null,
-        reason: metrics.null_reasons[condition.metric] || '指标不可用'
+        reason: metrics.null_reasons[condition.metric] || `${condition.metric}: 指标不可用`
       }
     }
 

@@ -181,4 +181,27 @@ describe('GuidedMode checklist', () => {
     expect(screen.getByText('再快进6批')).toBeInTheDocument()
     expect(screen.getByText('提高 aggressiveness')).toBeInTheDocument()
   })
+
+  it('handles missing metrics response without crashing', async () => {
+    const user = userEvent.setup()
+    mocks.getScenarioMetrics.mockResolvedValue(undefined as any)
+
+    render(
+      <GuidedMode
+        scenarioState={buildState()}
+        events={[]}
+        onScenarioChange={() => undefined}
+      />
+    )
+
+    const select = await screen.findByRole('combobox')
+    await user.selectOptions(select, 'pack-1')
+
+    const executeButton = await screen.findByRole('button', { name: '执行本步' })
+    await user.click(executeButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('drg.quota.ratio: 指标不可用')).toBeInTheDocument()
+    })
+  })
 })
