@@ -26,6 +26,8 @@ export const ScenarioStepSchema = z.object({
   action: ScenarioActionSchema,
   expected_observation: z.array(z.string()).min(2),
   expected_rules: z.array(ScenarioPassConditionSchema).optional(),
+  required_triggers: z.array(ScenarioPassConditionSchema).optional(),
+  hints: z.array(z.string()).optional(),
   pass_condition: ScenarioPassConditionSchema,
   explain_check: ScenarioExplainCheckSchema,
 })
