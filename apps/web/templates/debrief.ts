@@ -35,6 +35,14 @@ const summarizeObservations = (pack: ScenarioPack) => {
   return Array.from(new Set(observations))
 }
 
+const formatAnswerLine = (pack: ScenarioPack, item: { stepId: string; selected: number; correct: boolean; rationale: string }) => {
+  const step = pack.steps.find((s) => s.step_id === item.stepId)
+  const optionText = step?.explain_check?.options?.[item.selected]
+  const optionLetter = String.fromCharCode(65 + item.selected)
+  const answerLabel = optionText ? `${optionLetter}. ${optionText}` : optionLetter
+  return `- ${item.stepId}：作答 ${answerLabel}（${item.correct ? '正确' : '错误'}）\n  - 解析：${item.rationale}`
+}
+
 const buildOneLineExplanation = (event: Event | undefined) => {
   if (!event?.explanation) {
     return '暂无解释器分解数据。'
@@ -117,6 +125,6 @@ ${topEvents.length ? topEvents.map((event) => `- ${event.event_id}：${event.des
 - scenario.json / events.jsonl / results.csv：${exportUrl}
 
 ## 答题记录
-${answers.length ? answers.map((item) => `- ${item.stepId}：${item.correct ? '正确' : '错误'}（选择 ${String.fromCharCode(65 + item.selected)}）\n  - 解析：${item.rationale}`).join('\n') : '- 无'}
+${answers.length ? answers.map((item) => formatAnswerLine(pack, item)).join('\n') : '- 无'}
 `
 }
