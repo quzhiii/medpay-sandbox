@@ -152,6 +152,7 @@ class ScenarioStep(BaseModel):
     expected_observation: list[str] = Field(min_length=2)
     expected_rules: Optional[list[ScenarioPassCondition]] = None
     required_triggers: Optional[list[ScenarioPassCondition]] = None
+    hints: Optional[list[str]] = None
     pass_condition: ScenarioPassCondition
     explain_check: ScenarioExplainCheck
 
